@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>証明写真メーカー</title>
+    <meta name="description" content="ブラウザ内で背景を自動除去し、証明写真を作成できる無料ツール。写真は外部送信されません。" />
+    <meta property="og:title" content="証明写真メーカー" />
+    <meta property="og:description" content="ブラウザ内で完結する証明写真メーカー。写真はサーバーに送信されません。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/sample.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
@@ -85,6 +94,10 @@
               <div id="custom-dpi-box" class="custom-dpi" hidden>
                 <input type="number" id="custom-dpi" min="72" max="1200" step="1" value="300" />
                 <span>dpi</span>
+              </div>
+              <div id="custom-px-box" class="custom-dpi" hidden>
+                <input type="number" id="custom-px" min="100" max="4000" step="10" value="800" />
+                <span>px（長辺）</span>
               </div>
               <div class="dims-note" id="dpi-note"></div>
               <button id="download" class="btn primary full-btn" style="margin-top: 12px;">PNG をダウンロード</button>

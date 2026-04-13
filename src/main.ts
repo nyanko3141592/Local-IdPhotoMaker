@@ -53,19 +53,28 @@ function gradient(ctx: CanvasRenderingContext2D, w: number, h: number, top: stri
 }
 
 const PREVIEW_PX_PER_MM = 16; // プレビュー用: 1mm = 16px (30x40mm -> 480x640) ≈ 400dpi
-type OutputPreset = { id: string; label: string; dpi?: number; longPx?: number; custom?: boolean };
+type OutputPreset = { id: string; label: string; dpi?: number; longPx?: number; customDpi?: boolean; customPx?: boolean };
 const OUTPUT_PRESETS: OutputPreset[] = [
   { id: "print-300", label: "印刷標準（300 dpi）", dpi: 300 },
   { id: "print-350", label: "プロ印刷（350 dpi）", dpi: 350 },
   { id: "online", label: "オンライン申請用（長辺 640 px）", longPx: 640 },
-  { id: "custom", label: "カスタム（dpi を指定）", custom: true },
+  { id: "custom-dpi", label: "カスタム（dpi を指定）", customDpi: true },
+  { id: "custom-px", label: "カスタム（長辺 px を指定）", customPx: true },
 ];
-function computeOutput(p: OutputPreset, wMm: number, hMm: number, customDpi: number): { w: number; h: number; suffix: string } {
-  if (p.custom) {
+function computeOutput(p: OutputPreset, wMm: number, hMm: number, customDpi: number, customPx: number): { w: number; h: number; suffix: string } {
+  if (p.customDpi) {
     return {
       w: Math.round((wMm * customDpi) / 25.4),
       h: Math.round((hMm * customDpi) / 25.4),
       suffix: `${customDpi}dpi`,
+    };
+  }
+  if (p.customPx) {
+    const ratio = Math.max(wMm, hMm);
+    return {
+      w: Math.round((wMm / ratio) * customPx),
+      h: Math.round((hMm / ratio) * customPx),
+      suffix: `${customPx}px`,
     };
   }
   if (p.longPx) {
@@ -91,6 +100,7 @@ const state = {
   bgMode: "gradient" as BgMode,
   output: OUTPUT_PRESETS[0],
   customDpi: 300,
+  customPx: 800,
   scale: 1.0,
   offsetX: 0,
   offsetY: 0,
@@ -301,13 +311,16 @@ OUTPUT_PRESETS.forEach((o) => {
 });
 outputSelect.value = OUTPUT_PRESETS[0].id;
 const dpiNote = $("dpi-note");
-const customBox = $("custom-dpi-box");
-const customInput = $<HTMLInputElement>("custom-dpi");
+const customDpiBox = $("custom-dpi-box");
+const customPxBox = $("custom-px-box");
+const customDpiInput = $<HTMLInputElement>("custom-dpi");
+const customPxInput = $<HTMLInputElement>("custom-px");
 function updateDpiNote() {
   const a = state.aspect;
-  const { w, h } = computeOutput(state.output, a.w, a.h, state.customDpi);
+  const { w, h } = computeOutput(state.output, a.w, a.h, state.customDpi, state.customPx);
   dpiNote.textContent = `出力: ${w} × ${h} px`;
-  customBox.hidden = !state.output.custom;
+  customDpiBox.hidden = !state.output.customDpi;
+  customPxBox.hidden = !state.output.customPx;
 }
 outputSelect.addEventListener("change", () => {
   const found = OUTPUT_PRESETS.find((o) => o.id === outputSelect.value);
@@ -316,10 +329,17 @@ outputSelect.addEventListener("change", () => {
     updateDpiNote();
   }
 });
-customInput.addEventListener("input", () => {
-  const v = parseInt(customInput.value);
+customDpiInput.addEventListener("input", () => {
+  const v = parseInt(customDpiInput.value);
   if (!isNaN(v) && v >= 72 && v <= 1200) {
     state.customDpi = v;
+    updateDpiNote();
+  }
+});
+customPxInput.addEventListener("input", () => {
+  const v = parseInt(customPxInput.value);
+  if (!isNaN(v) && v >= 100 && v <= 4000) {
+    state.customPx = v;
     updateDpiNote();
   }
 });
@@ -335,7 +355,7 @@ $("reset").addEventListener("click", () => {
   render();
 });
 $("download").addEventListener("click", () => {
-  const { w: outW, h: outH, suffix } = computeOutput(state.output, state.aspect.w, state.aspect.h, state.customDpi);
+  const { w: outW, h: outH, suffix } = computeOutput(state.output, state.aspect.w, state.aspect.h, state.customDpi, state.customPx);
   const c = document.createElement("canvas");
   c.width = outW; c.height = outH;
   const cx = c.getContext("2d")!;
