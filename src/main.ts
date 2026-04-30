@@ -407,6 +407,11 @@ function canUseNativeShare(file: File) {
     && navigator.canShare({ files: [file] });
 }
 
+function shouldUseNativeShare(file: File) {
+  const looksMobile = window.matchMedia("(pointer: coarse), (max-width: 640px)").matches;
+  return looksMobile && canUseNativeShare(file);
+}
+
 function updateSaveActions() {
   const saveButton = $<HTMLButtonElement>("save");
   const downloadButton = $<HTMLButtonElement>("download");
@@ -437,7 +442,7 @@ $("reset").addEventListener("click", () => {
 });
 $("save").addEventListener("click", async () => {
   const { blob, filename, file } = await createOutputFile();
-  if (canUseNativeShare(file)) {
+  if (shouldUseNativeShare(file)) {
     try {
       await navigator.share({
         files: [file],
