@@ -156,11 +156,13 @@ function render() {
 }
 
 function showEditor() {
+  document.body.classList.add("is-editing");
   uploadSection.hidden = true;
   editor.hidden = false;
 }
 
 function showUpload() {
+  document.body.classList.remove("is-editing");
   uploadSection.hidden = false;
   editor.hidden = true;
 }

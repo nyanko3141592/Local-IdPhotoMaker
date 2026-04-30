@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>証明写真メーカー</title>
-    <meta name="description" content="ブラウザ内で背景を自動除去し、証明写真を作成できる無料ツール。写真は外部送信されません。" />
-    <meta property="og:title" content="証明写真メーカー" />
-    <meta property="og:description" content="ブラウザ内で完結する証明写真メーカー。写真はサーバーに送信されません。" />
+    <title>うちの子証明写真メーカー</title>
+    <meta name="description" content="ブラウザ内で背景を自動除去し、人もペットも証明写真風に仕上げられる無料ツール。写真は外部送信されません。" />
+    <meta property="og:title" content="うちの子証明写真メーカー" />
+    <meta property="og:description" content="人もペットも証明写真風に。ブラウザ内で完結し、写真はサーバーに送信されません。" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/sample.png" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -18,28 +18,49 @@
   <body>
     <main>
       <header>
-        <h1>証明写真メーカー</h1>
-        <p class="sub">背景を自動除去し、用途に合ったサイズで証明写真を作成します。</p>
+        <div class="brand-strip">
+          <span class="brand-mark">証明写真工房</span>
+          <span>ブラウザ内仕上げ</span>
+        </div>
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <p class="kicker">赤ちゃんも、うちの子も、人間も。</p>
+            <h1><span>サクっと作る</span>証明写真</h1>
+            <p class="sub">背景を自動で抜いて、履歴書・免許・パスポート風のサイズへ。写真は外部送信されません。</p>
+            <div class="price-burst" aria-label="無料で作成">
+              <strong>¥0</strong>
+              <span>何枚でも</span>
+            </div>
+          </div>
+          <div class="hero-visual" aria-hidden="true">
+            <div class="portrait portrait-main"><img src="/sample.png" alt="" /></div>
+            <div class="portrait portrait-side"><img src="/sample.png" alt="" /></div>
+            <div class="mini-row">
+              <span><img src="/sample.png" alt="" /></span>
+              <span><img src="/sample.png" alt="" /></span>
+              <span><img src="/sample.png" alt="" /></span>
+              <span><img src="/sample.png" alt="" /></span>
+            </div>
+          </div>
+        </div>
         <div class="privacy-banner">
           <svg class="shield" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5l8-3z" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <div>
-            <strong>完全にこの端末の中だけで処理されます。</strong>
-            アップロードされた写真や生成結果は、サーバーや外部サービスに一切送信されません。AI 処理もすべてブラウザ内で完結するため、顔写真や個人情報が外部に出ることはありません。
-          </div>
+          <div><strong>端末内だけで処理。</strong> 顔写真・ペット写真・生成結果はサーバーや外部 API に送信されません。</div>
         </div>
       </header>
 
       <section id="upload-section">
         <figure class="sample">
+          <div class="sheet-label">自宅プリント風シート</div>
           <img src="/sample.png" alt="証明写真のサンプル" />
-          <figcaption>このアプリで実際に作成した証明写真のサンプル（30×40mm / 背景色違い）</figcaption>
+          <figcaption>人にもペットにも使える、証明写真っぽい仕上がり見本</figcaption>
         </figure>
         <label class="drop" id="drop">
           <input type="file" id="file" accept="image/*" hidden />
           <svg class="drop-icon" viewBox="0 0 24 24"><path d="M12 15V3m0 0L7 8m5-5l5 5M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span class="drop-title">写真をアップロード</span>
+          <span class="drop-title">いますぐ写真を選ぶ</span>
           <span class="drop-sub">クリックまたはドラッグ＆ドロップ（JPEG / PNG）</span>
-          <span class="drop-note">この写真は外部には送信されません</span>
+          <span class="drop-note">初回だけ AI モデルの読み込みに少し時間がかかります</span>
         </label>
       </section>
 
