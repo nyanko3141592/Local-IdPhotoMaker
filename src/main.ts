@@ -173,11 +173,22 @@ async function handleFile(file: File) {
   render();
   loading.hidden = false;
   loadingText.textContent = "画像を準備中...";
+  let resized: Blob;
   try {
-    const resized = await resizeImage(file, 2048);
+    resized = await resizeImage(file, 2048);
+  } catch (e) {
+    console.error("Failed to load image", e);
+    loadingText.textContent = "画像を読み込めませんでした。JPEG / PNG の写真でお試しください。";
+    await new Promise((r) => setTimeout(r, 2200));
+    showUpload();
+    loading.hidden = true;
+    return;
+  }
+
+  try {
     loadingText.textContent = "初期化中... (初回はAIモデルのダウンロードに時間がかかります)";
     const blob = await removeBackground(resized, {
-      model: "isnet",
+      model: "isnet_quint8",
       progress: (key, current, total) => {
         const pct = total ? Math.round((current / total) * 100) : 0;
         if (key.startsWith("fetch")) {
@@ -194,10 +205,12 @@ async function handleFile(file: File) {
     state.subject = img;
     render();
   } catch (e) {
-    console.error(e);
-    loadingText.textContent = "エラーが発生しました。別の画像でお試しください。";
-    await new Promise((r) => setTimeout(r, 1800));
-    showUpload();
+    console.warn("Background removal failed; continuing with original image", e);
+    loadingText.textContent = "背景除去に失敗したため、元画像のまま続行します...";
+    const img = await loadImage(resized);
+    state.subject = img;
+    render();
+    await new Promise((r) => setTimeout(r, 900));
   } finally {
     loading.hidden = true;
   }
