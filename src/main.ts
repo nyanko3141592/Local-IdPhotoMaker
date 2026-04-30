@@ -363,6 +363,71 @@ updateDpiNote();
 
 function updateStatus() {}
 
+function outputFilename(suffix: string) {
+  return `id-photo-${state.aspect.id}-${suffix}.png`;
+}
+
+function canvasToBlob(c: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    c.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("画像の書き出しに失敗しました"));
+    }, "image/png");
+  });
+}
+
+async function createOutputFile() {
+  const { w: outW, h: outH, suffix } = computeOutput(state.output, state.aspect.w, state.aspect.h, state.customDpi, state.customPx);
+  const c = document.createElement("canvas");
+  c.width = outW;
+  c.height = outH;
+  const cx = c.getContext("2d")!;
+  drawScene(cx, outW, outH, canvas.width);
+  const blob = await canvasToBlob(c);
+  const filename = outputFilename(suffix);
+  return {
+    blob,
+    filename,
+    file: new File([blob], filename, { type: "image/png" }),
+  };
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const a = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  a.download = filename;
+  a.href = url;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function canUseNativeShare(file: File) {
+  return typeof navigator.share === "function"
+    && typeof navigator.canShare === "function"
+    && navigator.canShare({ files: [file] });
+}
+
+function updateSaveActions() {
+  const saveButton = $<HTMLButtonElement>("save");
+  const downloadButton = $<HTMLButtonElement>("download");
+  const saveNote = $("save-note");
+  const looksMobile = window.matchMedia("(pointer: coarse), (max-width: 640px)").matches;
+  const hasShareApi = typeof navigator.share === "function";
+  if (looksMobile && hasShareApi) {
+    saveButton.textContent = "写真に保存・共有";
+    downloadButton.hidden = false;
+    downloadButton.classList.remove("primary");
+    downloadButton.classList.add("subtle");
+    saveNote.textContent = "保存ボタンで共有シートを開き、「画像を保存」や写真アプリを選べます。";
+  } else {
+    saveButton.textContent = "PNG を保存";
+    downloadButton.hidden = true;
+    saveNote.textContent = looksMobile
+      ? "共有シート非対応のブラウザでは PNG として保存されます。ダウンロード後に写真アプリへ保存してください。"
+      : "PC ではダウンロードフォルダに PNG として保存されます。";
+  }
+}
+
 // Buttons
 $("flip").addEventListener("click", () => { state.flip = !state.flip; render(); });
 $("reset").addEventListener("click", () => {
@@ -370,16 +435,26 @@ $("reset").addEventListener("click", () => {
   updateStatus();
   render();
 });
-$("download").addEventListener("click", () => {
-  const { w: outW, h: outH, suffix } = computeOutput(state.output, state.aspect.w, state.aspect.h, state.customDpi, state.customPx);
-  const c = document.createElement("canvas");
-  c.width = outW; c.height = outH;
-  const cx = c.getContext("2d")!;
-  drawScene(cx, outW, outH, canvas.width);
-  const a = document.createElement("a");
-  a.download = `id-photo-${state.aspect.id}-${suffix}.png`;
-  a.href = c.toDataURL("image/png");
-  a.click();
+$("save").addEventListener("click", async () => {
+  const { blob, filename, file } = await createOutputFile();
+  if (canUseNativeShare(file)) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: "証明写真",
+        text: "作成した証明写真です。",
+      });
+      return;
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
+      console.warn("Native share failed; falling back to download", e);
+    }
+  }
+  downloadBlob(blob, filename);
+});
+$("download").addEventListener("click", async () => {
+  const { blob, filename } = await createOutputFile();
+  downloadBlob(blob, filename);
 });
 $("reupload").addEventListener("click", () => {
   if (!state.subject) { showUpload(); return; }
@@ -451,4 +526,5 @@ canvas.addEventListener("wheel", (e) => {
   render();
 }, { passive: false });
 
-window.addEventListener("resize", () => { setCanvasSize(); render(); });
+updateSaveActions();
+window.addEventListener("resize", () => { setCanvasSize(); updateSaveActions(); render(); });

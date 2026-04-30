@@ -654,6 +654,14 @@ h1 span {
 
 .full-btn { display: block; }
 
+.save-note {
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: .76rem;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
 .legal {
   margin-top: 26px;
   padding: 18px;
@@ -825,5 +833,6 @@ footer p { margin: 4px 0; }
   .swatches { gap: 5px; }
   .btn-row { gap: 6px; }
   .btn { min-height: 40px; padding: 8px; font-size: .8rem; }
+  .save-note { font-size: .72rem; }
   .legal { padding: 12px; }
 }
