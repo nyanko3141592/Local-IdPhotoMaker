@@ -407,26 +407,20 @@ function canUseNativeShare(file: File) {
     && navigator.canShare({ files: [file] });
 }
 
-function shouldUseNativeShare(file: File) {
-  const looksMobile = window.matchMedia("(pointer: coarse), (max-width: 640px)").matches;
-  return looksMobile && canUseNativeShare(file);
-}
-
 function updateSaveActions() {
   const saveButton = $<HTMLButtonElement>("save");
-  const downloadButton = $<HTMLButtonElement>("download");
+  const shareButton = $<HTMLButtonElement>("share");
   const saveNote = $("save-note");
   const looksMobile = window.matchMedia("(pointer: coarse), (max-width: 640px)").matches;
   const hasShareApi = typeof navigator.share === "function";
-  if (looksMobile && hasShareApi) {
-    saveButton.textContent = "写真に保存・共有";
-    downloadButton.hidden = false;
-    downloadButton.classList.remove("primary");
-    downloadButton.classList.add("subtle");
-    saveNote.textContent = "保存ボタンで共有シートを開き、「画像を保存」や写真アプリを選べます。";
+  saveButton.textContent = "PNG を保存";
+  shareButton.hidden = !hasShareApi;
+  if (hasShareApi) {
+    shareButton.textContent = looksMobile ? "写真に保存・共有" : "共有";
+    saveNote.textContent = looksMobile
+      ? "写真アプリに入れたい場合は共有ボタンから「画像を保存」を選べます。"
+      : "PNG 保存はダウンロード、共有はOSの共有シートを開きます。";
   } else {
-    saveButton.textContent = "PNG を保存";
-    downloadButton.hidden = true;
     saveNote.textContent = looksMobile
       ? "共有シート非対応のブラウザでは PNG として保存されます。ダウンロード後に写真アプリへ保存してください。"
       : "PC ではダウンロードフォルダに PNG として保存されます。";
@@ -441,25 +435,26 @@ $("reset").addEventListener("click", () => {
   render();
 });
 $("save").addEventListener("click", async () => {
-  const { blob, filename, file } = await createOutputFile();
-  if (shouldUseNativeShare(file)) {
-    try {
-      await navigator.share({
-        files: [file],
-        title: "証明写真",
-        text: "作成した証明写真です。",
-      });
-      return;
-    } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") return;
-      console.warn("Native share failed; falling back to download", e);
-    }
-  }
-  downloadBlob(blob, filename);
-});
-$("download").addEventListener("click", async () => {
   const { blob, filename } = await createOutputFile();
   downloadBlob(blob, filename);
+});
+$("share").addEventListener("click", async () => {
+  const { blob, filename, file } = await createOutputFile();
+  if (!canUseNativeShare(file)) {
+    downloadBlob(blob, filename);
+    return;
+  }
+  try {
+    await navigator.share({
+      files: [file],
+      title: "証明写真",
+      text: "作成した証明写真です。",
+    });
+  } catch (e) {
+    if (e instanceof DOMException && e.name === "AbortError") return;
+    console.warn("Native share failed; falling back to download", e);
+    downloadBlob(blob, filename);
+  }
 });
 $("reupload").addEventListener("click", () => {
   if (!state.subject) { showUpload(); return; }
