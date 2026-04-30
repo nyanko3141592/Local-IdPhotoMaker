@@ -723,66 +723,80 @@ footer p { margin: 4px 0; }
 
 @media (max-width: 640px) {
   main {
-    width: min(100% - 16px, 1120px);
-    padding-top: 8px;
+    width: min(100% - 12px, 1120px);
+    padding-top: 6px;
   }
 
   header {
     border-width: 4px;
-    padding: 12px 12px 92px;
+    padding: 10px 10px 12px;
   }
 
-  .brand-strip { font-size: .72rem; }
-  .kicker { font-size: 1.05rem; }
-  h1 { font-size: clamp(3rem, 17vw, 4.2rem); }
-  h1 span { font-size: 1.55rem; }
-  .sub { font-size: .9rem; }
+  .brand-strip { font-size: .68rem; }
+  .brand-strip span:last-child { padding: 3px 8px; }
+  .hero-grid {
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .hero-copy { padding-top: 0; }
+  .kicker { font-size: .95rem; }
+  h1 { font-size: clamp(2.55rem, 14.5vw, 3.55rem); }
+  h1 span {
+    margin-bottom: 5px;
+    font-size: 1.34rem;
+  }
+  .sub {
+    margin-top: 12px;
+    font-size: .82rem;
+    line-height: 1.55;
+  }
 
   .price-burst {
-    width: 230px;
-    margin-top: 14px;
+    width: 205px;
+    margin-top: 11px;
+    border-width: 3px;
   }
 
-  .price-burst strong { font-size: 1.75rem; }
-  .price-burst span { font-size: .85rem; }
+  .price-burst strong {
+    padding: 6px 10px;
+    font-size: 1.52rem;
+  }
+  .price-burst span {
+    padding: 7px 10px;
+    font-size: .8rem;
+  }
 
   .hero-visual {
-    grid-template-columns: 1fr 1fr;
-    gap: 7px;
-    min-height: 185px;
-  }
-
-  .portrait { border-width: 3px; }
-  .portrait-main,
-  .portrait-side { height: 160px; }
-
-  .mini-row {
-    grid-template-columns: repeat(4, 38px);
-    gap: 4px;
-    padding: 5px;
-    right: 4px;
-    bottom: 2px;
+    display: none;
   }
 
   .privacy-banner {
-    margin-top: 16px;
+    margin-top: 10px;
     padding: 8px 10px;
-    font-size: .72rem;
+    font-size: .69rem;
     line-height: 1.45;
   }
 
   .shield { width: 20px; height: 20px; }
 
   #upload-section {
-    margin-top: -58px;
-    padding: 0 8px;
-    gap: 12px;
+    margin-top: 10px;
+    padding: 0 4px;
+    gap: 10px;
   }
 
   .sample {
-    padding: 13px 13px 36px;
+    order: 2;
+    padding: 11px 11px 32px;
     border-width: 4px;
     transform: rotate(-1deg);
+  }
+
+  .sheet-label {
+    top: -14px;
+    left: 12px;
+    padding: 3px 8px;
+    font-size: .74rem;
   }
 
   .sample figcaption {
@@ -792,20 +806,22 @@ footer p { margin: 4px 0; }
   }
 
   .drop {
-    min-height: 170px;
-    padding: 18px;
+    order: 1;
+    min-height: 124px;
+    padding: 14px;
     border-width: 4px;
   }
 
-  .drop-title { font-size: 1.1rem; }
+  .drop-icon { width: 38px; height: 38px; }
+  .drop-title { font-size: 1.15rem; }
   .drop-sub,
-  .drop-note { font-size: .74rem; }
+  .drop-note { font-size: .72rem; }
 
   #editor { gap: 12px; }
   .panel { border-width: 3px; }
   .panel-header { padding: 8px 10px; }
   .panel-body { padding: 11px; }
-  .canvas-wrap { min-height: 280px; padding: 14px; }
+  .canvas-wrap { min-height: 260px; padding: 10px; }
   .swatches { gap: 5px; }
   .btn-row { gap: 6px; }
   .btn { min-height: 40px; padding: 8px; font-size: .8rem; }

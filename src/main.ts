@@ -122,7 +122,8 @@ loading.hidden = true;
 function setCanvasSize() {
   canvas.width = state.aspect.w * PREVIEW_PX_PER_MM;
   canvas.height = state.aspect.h * PREVIEW_PX_PER_MM;
-  const maxH = Math.min(480, window.innerHeight * 0.6);
+  const isMobile = window.matchMedia("(max-width: 640px)").matches;
+  const maxH = isMobile ? Math.min(360, window.innerHeight * 0.44) : Math.min(480, window.innerHeight * 0.6);
   const scale = Math.min(1, maxH / canvas.height);
   canvas.style.width = `${canvas.width * scale}px`;
   canvas.style.height = `${canvas.height * scale}px`;
