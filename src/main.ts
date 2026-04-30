@@ -61,6 +61,25 @@ const OUTPUT_PRESETS: OutputPreset[] = [
   { id: "custom-dpi", label: "カスタム（dpi を指定）", customDpi: true },
   { id: "custom-px", label: "カスタム（長辺 px を指定）", customPx: true },
 ];
+type ExportMode = "sheet" | "single";
+type SheetLayout = {
+  dpi: number;
+  wMm: number;
+  hMm: number;
+  marginMm: number;
+  gapMm: number;
+  labelMm: number;
+  footerMm: number;
+};
+const DEFAULT_SHEET: SheetLayout = {
+  dpi: 300,
+  wMm: 152,
+  hMm: 102,
+  marginMm: 4,
+  gapMm: 1,
+  labelMm: 18,
+  footerMm: 9,
+};
 function computeOutput(p: OutputPreset, wMm: number, hMm: number, customDpi: number, customPx: number): { w: number; h: number; suffix: string } {
   if (p.customDpi) {
     return {
@@ -98,6 +117,7 @@ const state = {
   aspect: ASPECTS[0],
   background: BACKGROUNDS[0],
   bgMode: "gradient" as BgMode,
+  exportMode: "sheet" as ExportMode,
   output: OUTPUT_PRESETS[0],
   customDpi: 300,
   customPx: 800,
@@ -327,17 +347,36 @@ OUTPUT_PRESETS.forEach((o) => {
 });
 outputSelect.value = OUTPUT_PRESETS[0].id;
 const dpiNote = $("dpi-note");
+const exportNote = $("export-note");
 const customDpiBox = $("custom-dpi-box");
 const customPxBox = $("custom-px-box");
 const customDpiInput = $<HTMLInputElement>("custom-dpi");
 const customPxInput = $<HTMLInputElement>("custom-px");
+const exportModeRadios = document.querySelectorAll<HTMLInputElement>('input[name="export-mode"]');
 function updateDpiNote() {
   const a = state.aspect;
   const { w, h } = computeOutput(state.output, a.w, a.h, state.customDpi, state.customPx);
-  dpiNote.textContent = `出力: ${w} × ${h} px`;
-  customDpiBox.hidden = !state.output.customDpi;
-  customPxBox.hidden = !state.output.customPx;
+  const sheetW = Math.round((DEFAULT_SHEET.wMm * DEFAULT_SHEET.dpi) / 25.4);
+  const sheetH = Math.round((DEFAULT_SHEET.hMm * DEFAULT_SHEET.dpi) / 25.4);
+  if (state.exportMode === "sheet") {
+    dpiNote.textContent = `出力: ${sheetW} × ${sheetH} px / ${countSheetSlots(state.aspect.w, state.aspect.h, DEFAULT_SHEET)}枚`;
+    exportNote.textContent = "写真プリント風シートに、同じ証明写真を複数枚並べて保存します。";
+  } else {
+    dpiNote.textContent = `出力: ${w} × ${h} px`;
+    exportNote.textContent = "用途サイズどおりの1枚画像として保存します。";
+  }
+  customDpiBox.hidden = state.exportMode !== "single" || !state.output.customDpi;
+  customPxBox.hidden = state.exportMode !== "single" || !state.output.customPx;
+  outputSelect.disabled = state.exportMode === "sheet";
 }
+exportModeRadios.forEach((radio) => {
+  radio.addEventListener("change", () => {
+    if (!radio.checked) return;
+    state.exportMode = radio.value as ExportMode;
+    updateDpiNote();
+    updateSaveActions();
+  });
+});
 outputSelect.addEventListener("change", () => {
   const found = OUTPUT_PRESETS.find((o) => o.id === outputSelect.value);
   if (found) {
@@ -363,8 +402,172 @@ updateDpiNote();
 
 function updateStatus() {}
 
+function mmToPx(mm: number, dpi: number) {
+  return Math.round((mm * dpi) / 25.4);
+}
+
+function countSheetSlots(photoWmm: number, photoHmm: number, layout: SheetLayout) {
+  const usableW = layout.wMm - layout.marginMm * 2 - layout.labelMm;
+  const usableH = layout.hMm - layout.marginMm * 2 - layout.footerMm;
+  const cols = Math.max(1, Math.floor((usableW + layout.gapMm) / (photoWmm + layout.gapMm)));
+  const rows = Math.max(1, Math.floor((usableH + layout.gapMm) / (photoHmm + layout.gapMm)));
+  return cols * rows;
+}
+
+function drawCropGuide(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+  ctx.save();
+  ctx.strokeStyle = "rgba(0, 76, 200, .52)";
+  ctx.lineWidth = Math.max(1, Math.round(w * 0.006));
+  ctx.setLineDash([Math.max(3, Math.round(w * 0.018)), Math.max(3, Math.round(w * 0.012))]);
+  ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+  ctx.restore();
+}
+
+function drawSheetBackground(ctx: CanvasRenderingContext2D, w: number, h: number, dpi: number) {
+  ctx.fillStyle = "#f9fbff";
+  ctx.fillRect(0, 0, w, h);
+  const small = Math.max(2, mmToPx(1, dpi));
+  const large = small * 5;
+  ctx.save();
+  ctx.strokeStyle = "rgba(68, 94, 255, .18)";
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= w; x += small) {
+    ctx.beginPath();
+    ctx.moveTo(x + 0.5, 0);
+    ctx.lineTo(x + 0.5, h);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= h; y += small) {
+    ctx.beginPath();
+    ctx.moveTo(0, y + 0.5);
+    ctx.lineTo(w, y + 0.5);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = "rgba(68, 94, 255, .34)";
+  for (let x = 0; x <= w; x += large) {
+    ctx.beginPath();
+    ctx.moveTo(x + 0.5, 0);
+    ctx.lineTo(x + 0.5, h);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= h; y += large) {
+    ctx.beginPath();
+    ctx.moveTo(0, y + 0.5);
+    ctx.lineTo(w, y + 0.5);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = "#3f63ff";
+  ctx.lineWidth = Math.max(2, mmToPx(0.25, dpi));
+  ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+  ctx.restore();
+}
+
+function drawSideTicket(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, dpi: number) {
+  const drawVertical = (text: string, cx: number, top: number, size: number, weight: number | string, color: string, spacing = 1.04) => {
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = color;
+    ctx.font = `${weight} ${size}px sans-serif`;
+    const step = size * spacing;
+    [...text].forEach((char, index) => ctx.fillText(char, cx, top + index * step));
+    ctx.restore();
+  };
+  ctx.save();
+  ctx.fillStyle = "#fff";
+  ctx.strokeStyle = "#1f3a8a";
+  ctx.lineWidth = Math.max(1, mmToPx(0.18, dpi));
+  ctx.fillRect(x, y, w, h);
+  ctx.strokeRect(x, y, w, h);
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#063a85";
+  ctx.font = `900 ${Math.max(13, Math.round(w * 0.13))}px sans-serif`;
+  ctx.fillText("PRINT SHEET", x + w / 2, y + mmToPx(5, dpi));
+
+  drawVertical("証明写真", x + w * 0.45, y + h * 0.2, Math.max(25, Math.round(w * 0.27)), 900, "#063a85", 1.06);
+  drawVertical("きれい", x + w * 0.7, y + h * 0.23, Math.max(14, Math.round(w * 0.14)), 800, "#1d5bd8", 1.18);
+
+  ctx.strokeStyle = "rgba(6, 58, 133, .35)";
+  ctx.setLineDash([Math.max(3, mmToPx(0.8, dpi)), Math.max(3, mmToPx(0.8, dpi))]);
+  ctx.beginPath();
+  ctx.moveTo(x + w * 0.18, y + mmToPx(7, dpi));
+  ctx.lineTo(x + w * 0.18, y + h - mmToPx(7, dpi));
+  ctx.stroke();
+
+  ctx.setLineDash([]);
+  ctx.fillStyle = "#0a4bb4";
+  ctx.font = `700 ${Math.max(9, Math.round(w * 0.08))}px sans-serif`;
+  ctx.fillText(`${new Date().getFullYear()}`, x + w / 2, y + h - mmToPx(8, dpi));
+  ctx.restore();
+}
+
+function createSingleCanvas() {
+  const { w: outW, h: outH, suffix } = computeOutput(state.output, state.aspect.w, state.aspect.h, state.customDpi, state.customPx);
+  const c = document.createElement("canvas");
+  c.width = outW;
+  c.height = outH;
+  const cx = c.getContext("2d")!;
+  drawScene(cx, outW, outH, canvas.width);
+  return { canvas: c, suffix };
+}
+
+function createPhotoCanvas(w: number, h: number) {
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  drawScene(c.getContext("2d")!, w, h, canvas.width);
+  return c;
+}
+
+function createSheetCanvas() {
+  const layout = DEFAULT_SHEET;
+  const c = document.createElement("canvas");
+  c.width = mmToPx(layout.wMm, layout.dpi);
+  c.height = mmToPx(layout.hMm, layout.dpi);
+  const cx = c.getContext("2d")!;
+  const photoW = mmToPx(state.aspect.w, layout.dpi);
+  const photoH = mmToPx(state.aspect.h, layout.dpi);
+  const margin = mmToPx(layout.marginMm, layout.dpi);
+  const gap = mmToPx(layout.gapMm, layout.dpi);
+  const labelW = mmToPx(layout.labelMm, layout.dpi);
+  drawSheetBackground(cx, c.width, c.height, layout.dpi);
+  const usableW = c.width - margin * 2 - labelW;
+  const bottomBand = mmToPx(layout.footerMm, layout.dpi);
+  const usableH = c.height - margin * 2 - bottomBand;
+  const cols = Math.max(1, Math.floor((usableW + gap) / (photoW + gap)));
+  const rows = Math.max(1, Math.floor((usableH + gap) / (photoH + gap)));
+  const usedW = cols * photoW + (cols - 1) * gap;
+  const usedH = rows * photoH + (rows - 1) * gap;
+  const startX = margin;
+  const startY = margin + Math.max(0, Math.floor((usableH - usedH) / 2));
+  const photoCanvas = createPhotoCanvas(photoW, photoH);
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const x = startX + col * (photoW + gap);
+      const y = startY + row * (photoH + gap);
+      cx.fillStyle = "#fff";
+      cx.fillRect(x - 2, y - 2, photoW + 4, photoH + 4);
+      cx.drawImage(photoCanvas, x, y);
+      drawCropGuide(cx, x, y, photoW, photoH);
+    }
+  }
+  const ticketX = c.width - margin - labelW;
+  drawSideTicket(cx, ticketX, startY, labelW, usedH, layout.dpi);
+  cx.save();
+  cx.fillStyle = "#e42b34";
+  cx.font = `900 ${Math.max(10, mmToPx(2.2, layout.dpi))}px sans-serif`;
+  cx.textAlign = "center";
+  cx.fillText("点線に沿ってカットしてください", startX + usedW / 2, c.height - Math.max(8, margin / 2));
+  cx.fillStyle = "#063a85";
+  cx.font = `700 ${Math.max(8, mmToPx(1.8, layout.dpi))}px sans-serif`;
+  cx.fillText(`${state.aspect.name}（${state.aspect.w}×${state.aspect.h}mm）`, startX + usedW / 2, c.height - Math.max(24, margin));
+  cx.restore();
+  return { canvas: c, suffix: `${layout.wMm}x${layout.hMm}mm-sheet-${layout.dpi}dpi` };
+}
+
 function outputFilename(suffix: string) {
-  return `id-photo-${state.aspect.id}-${suffix}.png`;
+  return `${state.exportMode === "sheet" ? "id-photo-sheet" : "id-photo"}-${state.aspect.id}-${suffix}.png`;
 }
 
 function canvasToBlob(c: HTMLCanvasElement): Promise<Blob> {
@@ -377,14 +580,9 @@ function canvasToBlob(c: HTMLCanvasElement): Promise<Blob> {
 }
 
 async function createOutputFile() {
-  const { w: outW, h: outH, suffix } = computeOutput(state.output, state.aspect.w, state.aspect.h, state.customDpi, state.customPx);
-  const c = document.createElement("canvas");
-  c.width = outW;
-  c.height = outH;
-  const cx = c.getContext("2d")!;
-  drawScene(cx, outW, outH, canvas.width);
-  const blob = await canvasToBlob(c);
-  const filename = outputFilename(suffix);
+  const result = state.exportMode === "sheet" ? createSheetCanvas() : createSingleCanvas();
+  const blob = await canvasToBlob(result.canvas);
+  const filename = outputFilename(result.suffix);
   return {
     blob,
     filename,

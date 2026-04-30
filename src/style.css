@@ -557,6 +557,13 @@ h1 span {
 .segmented label + label { border-left: 2px solid var(--line); }
 .segmented input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .segmented label:has(input:checked) { background: var(--yellow); color: var(--red); }
+.export-mode { margin-bottom: 8px; }
+.export-mode + .save-note { margin: 0 0 12px; }
+.select:disabled {
+  color: #7890a8;
+  background-color: #eef7fc;
+  cursor: not-allowed;
+}
 
 .hints {
   list-style: none;

@@ -140,6 +140,12 @@
           <div class="panel">
             <div class="panel-header">書き出し</div>
             <div class="panel-body">
+              <label class="field-label">出力形式</label>
+              <div class="segmented export-mode">
+                <label><input type="radio" name="export-mode" value="sheet" checked /><span>複数枚シート</span></label>
+                <label><input type="radio" name="export-mode" value="single" /><span>1枚画像</span></label>
+              </div>
+              <p id="export-note" class="save-note">写真プリント風シートに、同じ証明写真を複数枚並べて保存します。</p>
               <label class="field-label" for="dpi">解像度</label>
               <select id="dpi" class="select"></select>
               <div id="custom-dpi-box" class="custom-dpi" hidden>
