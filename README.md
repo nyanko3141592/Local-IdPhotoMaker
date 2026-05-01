@@ -79,15 +79,21 @@ pnpm preview   # ビルド成果物をローカル確認
 
 **AGPL-3.0 が影響するのは、アプリのコードを再配布・改変ホストする事業者のみ**で、本アプリを利用して画像を作るエンドユーザーには影響しません。この切り分けは FSF の公式解釈と一致します（[AGPLv3 FAQ](https://www.gnu.org/licenses/gpl-faq.html#AGPLv3InteractingRemotely)）。
 
+本番サイトでは、フッターとライセンス欄から以下へアクセスできるようにしています。
+
+- 対応するソースコード: <https://github.com/nyanko3141592/Local-IdPhotoMaker>
+- AGPL-3.0-only 本文: `/LICENSE`
+- 依存ライブラリ通知: `/THIRD_PARTY_NOTICES.txt`
+
 ### 依存ライブラリのライセンス概要
 
 | ライセンス | 件数 |
 |---|---|
-| AGPL-3.0 | 1 (`@imgly/background-removal`) |
-| BSD-3-Clause | 11 |
-| MIT | 10 |
-| Apache-2.0 | 2 |
-| ISC | 1 |
+| AGPL-3.0-only | 1 (`@imgly/background-removal`) |
+| MIT | 65 |
+| BSD-3-Clause | 12 |
+| Apache-2.0 | 3 |
+| ISC | 2 |
 
 いずれも AGPL-3.0 と両立可能な許諾型ライセンスです。詳細は `pnpm licenses` 相当のコマンドで再確認できます:
 
