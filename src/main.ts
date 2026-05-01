@@ -108,6 +108,7 @@ function gradient(ctx: CanvasRenderingContext2D, w: number, h: number, top: stri
 }
 
 const PREVIEW_PX_PER_MM = 16; // プレビュー用: 1mm = 16px (30x40mm -> 480x640) ≈ 400dpi
+const SHEET_PREVIEW_DPI = 110;
 type OutputPreset = { id: string; label: string; dpi?: number; longPx?: number; customDpi?: boolean; customPx?: boolean };
 const OUTPUT_PRESETS: OutputPreset[] = [
   { id: "print-300", label: "印刷標準（300 dpi）", dpi: 300 },
@@ -186,6 +187,8 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 
 const canvas = $<HTMLCanvasElement>("canvas");
 const ctx = canvas.getContext("2d")!;
+const sheetPreview = $<HTMLCanvasElement>("sheet-preview");
+const sheetPreviewCtx = sheetPreview.getContext("2d")!;
 const fileInput = $<HTMLInputElement>("file");
 const drop = $<HTMLLabelElement>("drop");
 const editor = $("editor");
@@ -198,10 +201,12 @@ function setCanvasSize() {
   canvas.width = state.aspect.w * PREVIEW_PX_PER_MM;
   canvas.height = state.aspect.h * PREVIEW_PX_PER_MM;
   const isMobile = window.matchMedia("(max-width: 640px)").matches;
-  const maxH = isMobile ? Math.min(360, window.innerHeight * 0.44) : Math.min(480, window.innerHeight * 0.6);
+  const maxH = isMobile ? Math.min(280, window.innerHeight * 0.34) : Math.min(360, window.innerHeight * 0.42);
   const scale = Math.min(1, maxH / canvas.height);
   canvas.style.width = `${canvas.width * scale}px`;
   canvas.style.height = `${canvas.height * scale}px`;
+  sheetPreview.width = mmToPx(DEFAULT_SHEET.wMm, SHEET_PREVIEW_DPI);
+  sheetPreview.height = mmToPx(DEFAULT_SHEET.hMm, SHEET_PREVIEW_DPI);
 }
 
 function drawScene(target: CanvasRenderingContext2D, w: number, h: number, refW: number) {
@@ -229,6 +234,7 @@ function render() {
   const h = canvas.height;
   ctx.clearRect(0, 0, w, h);
   drawScene(ctx, w, h, w);
+  renderSheetPreview();
 }
 
 function showEditor() {
@@ -575,8 +581,8 @@ function createPhotoCanvas(w: number, h: number) {
   return c;
 }
 
-function createSheetCanvas() {
-  const layout = DEFAULT_SHEET;
+function createSheetCanvas(dpi = DEFAULT_SHEET.dpi) {
+  const layout = { ...DEFAULT_SHEET, dpi };
   const c = document.createElement("canvas");
   c.width = mmToPx(layout.wMm, layout.dpi);
   c.height = mmToPx(layout.hMm, layout.dpi);
@@ -618,7 +624,14 @@ function createSheetCanvas() {
   cx.font = `700 ${Math.max(8, mmToPx(1.8, layout.dpi))}px sans-serif`;
   cx.fillText(`${state.aspect.name}（${state.aspect.w}×${state.aspect.h}mm）`, startX + usedW / 2, c.height - Math.max(24, margin));
   cx.restore();
-  return { canvas: c, suffix: `${layout.wMm}x${layout.hMm}mm-sheet-${layout.dpi}dpi` };
+  return { canvas: c, suffix: `${layout.wMm}x${layout.hMm}mm-sheet-${DEFAULT_SHEET.dpi}dpi` };
+}
+
+function renderSheetPreview() {
+  if (!sheetPreview.width || !sheetPreview.height) return;
+  const result = createSheetCanvas(SHEET_PREVIEW_DPI);
+  sheetPreviewCtx.clearRect(0, 0, sheetPreview.width, sheetPreview.height);
+  sheetPreviewCtx.drawImage(result.canvas, 0, 0, sheetPreview.width, sheetPreview.height);
 }
 
 function outputFilename(suffix: string) {

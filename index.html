@@ -100,7 +100,14 @@
         <div class="panel">
           <div class="panel-header">プレビュー</div>
           <div class="canvas-wrap">
-            <canvas id="canvas"></canvas>
+            <div id="sheet-preview-box" class="preview-box sheet-preview-box">
+              <div class="preview-label">シート仕上がり</div>
+              <canvas id="sheet-preview"></canvas>
+            </div>
+            <div class="preview-box single-preview-box">
+              <div id="single-preview-label" class="preview-label">位置調整</div>
+              <canvas id="canvas"></canvas>
+            </div>
             <div id="loading" class="loading" hidden><div class="spinner"></div><span id="loading-text">処理中...</span></div>
           </div>
         </div>
