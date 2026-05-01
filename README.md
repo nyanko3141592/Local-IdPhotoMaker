@@ -34,7 +34,7 @@ pnpm install   # または npm install
 pnpm dev
 ```
 
-- 開発サーバーは `Cross-Origin-Opener-Policy` / `Cross-Origin-Embedder-Policy` ヘッダを送信し、WebAssembly のマルチスレッド実行（`crossOriginIsolated`）を有効化します（`vite.config.ts`）。
+- 開発サーバーは `Cross-Origin-Opener-Policy` ヘッダを送信します（`vite.config.ts`）。AdSense の広告iframeと共存させるため、`Cross-Origin-Embedder-Policy` は付与していません。背景除去のWASMは必要に応じてシングルスレッドへフォールバックします。
 - AI モデル（数十 MB）は初回アクセス時に CDN からブラウザへダウンロードされ、以降はブラウザキャッシュから読み込まれます。**写真そのものは送信されません。**
 
 ```sh
@@ -44,7 +44,7 @@ pnpm preview   # ビルド成果物をローカル確認
 
 ## 広告設定
 
-Google AdSense を使う場合は、AdSense 側でサイトを追加・審査し、発行された Publisher ID と広告ユニットIDを Cloudflare Pages の環境変数に設定してください。
+Google AdSense は既存の Publisher ID `ca-pub-7040432689582179` をデフォルトで使います。別アカウントに切り替える場合は、Cloudflare Pages の環境変数で上書きしてください。
 
 | 環境変数 | 用途 |
 |---|---|
@@ -54,7 +54,7 @@ Google AdSense を使う場合は、AdSense 側でサイトを追加・審査し
 | `VITE_ADSENSE_SLOT_EDITOR` | 編集画面サイドの広告ユニットID |
 | `VITE_ADSENSE_SLOT_BOTTOM` | 下部の広告ユニットID |
 
-環境変数が未設定の場合、広告タグと広告枠は出力されません。`VITE_ADSENSE_CLIENT` が設定されたビルドでは、AdSense の認識用メタタグとスクリプトが `<head>` に自動挿入されます。Publisher ID が確定したら、`public/ads.txt.example` を `public/ads.txt` にコピーし、`pub-0000000000000000` を自身の Publisher ID に置き換えてください。
+`VITE_ADSENSE_CLIENT` が有効な値の場合、AdSense の認識用メタタグとスクリプトが `<head>` に自動挿入されます。広告ユニットIDが未設定でも Auto ads は有効です。`public/ads.txt` には既存Publisher IDを設定済みです。
 
 参考: [AdSense コード設置ガイド](https://support.google.com/adsense/answer/9274516) / [ads.txt ガイド](https://support.google.com/adsense/answer/12171612)
 
@@ -68,7 +68,6 @@ Google AdSense を使う場合は、AdSense 側でサイトを追加・審査し
 ```
 /*
   Cross-Origin-Opener-Policy: same-origin
-  Cross-Origin-Embedder-Policy: require-corp
 ```
 
 ## 生成画像の利用について（企業・商用）

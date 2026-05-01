@@ -6,13 +6,14 @@ declare global {
   }
 }
 
-const ADSENSE_CLIENT = (import.meta.env.VITE_ADSENSE_CLIENT || "").trim();
+const DEFAULT_ADSENSE_CLIENT = "ca-pub-7040432689582179";
+const ADSENSE_CLIENT = (import.meta.env.VITE_ADSENSE_CLIENT || DEFAULT_ADSENSE_CLIENT).trim();
 const ADSENSE_SLOTS = {
   top: (import.meta.env.VITE_ADSENSE_SLOT_TOP || "").trim(),
   editor: (import.meta.env.VITE_ADSENSE_SLOT_EDITOR || "").trim(),
   bottom: (import.meta.env.VITE_ADSENSE_SLOT_BOTTOM || "").trim(),
 } as const;
-const ADSENSE_AUTO = (import.meta.env.VITE_ADSENSE_AUTO || "").trim() === "true";
+const ADSENSE_AUTO = (import.meta.env.VITE_ADSENSE_AUTO || "true").trim() === "true";
 
 function isValidAdsenseClient(client: string) {
   return /^ca-pub-\d{16}$/.test(client);
@@ -23,11 +24,10 @@ function isValidAdsenseSlot(slot: string) {
 }
 
 function loadAdsense(client: string) {
-  if (document.querySelector<HTMLScriptElement>("script[data-managed-adsense]")) return;
+  if (document.querySelector<HTMLScriptElement>('script[src^="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]')) return;
   const script = document.createElement("script");
   script.async = true;
   script.crossOrigin = "anonymous";
-  script.dataset.managedAdsense = "true";
   script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(client)}`;
   document.head.appendChild(script);
 }
