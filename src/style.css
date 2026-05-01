@@ -245,6 +245,33 @@ h1 span {
   stroke-width: 1.9;
 }
 
+.ad-shell {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-height: 96px;
+  margin: 16px 0;
+  padding: 22px 8px 8px;
+  border: 3px solid rgba(255,255,255,.9);
+  background: rgba(255,255,255,.78);
+  box-shadow: 0 8px 18px rgba(0, 55, 125, .13);
+}
+
+.ad-shell-editor {
+  margin: 16px 0 0;
+  min-height: 250px;
+}
+
+.ad-label {
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  color: #607892;
+  font-size: .62rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
 #upload-section {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(280px, .9fr);
@@ -793,6 +820,16 @@ footer p { margin: 4px 0; }
   }
 
   .shield { width: 20px; height: 20px; }
+
+  .ad-shell {
+    min-height: 82px;
+    margin: 10px 0;
+    border-width: 2px;
+  }
+
+  .ad-shell-editor {
+    min-height: 140px;
+  }
 
   #upload-section {
     margin-top: 10px;

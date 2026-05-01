@@ -42,6 +42,22 @@ pnpm build     # ./dist に静的ビルド
 pnpm preview   # ビルド成果物をローカル確認
 ```
 
+## 広告設定
+
+Google AdSense を使う場合は、AdSense 側でサイトを追加・審査し、発行された Publisher ID と広告ユニットIDを Cloudflare Pages の環境変数に設定してください。
+
+| 環境変数 | 用途 |
+|---|---|
+| `VITE_ADSENSE_CLIENT` | AdSense Publisher ID（例: `ca-pub-1234567890123456`） |
+| `VITE_ADSENSE_AUTO` | Auto ads を使う場合は `true` |
+| `VITE_ADSENSE_SLOT_TOP` | ページ上部の広告ユニットID |
+| `VITE_ADSENSE_SLOT_EDITOR` | 編集画面サイドの広告ユニットID |
+| `VITE_ADSENSE_SLOT_BOTTOM` | 下部の広告ユニットID |
+
+環境変数が未設定の場合、広告タグと広告枠は出力されません。`VITE_ADSENSE_CLIENT` が設定されたビルドでは、AdSense の認識用メタタグとスクリプトが `<head>` に自動挿入されます。Publisher ID が確定したら、`public/ads.txt.example` を `public/ads.txt` にコピーし、`pub-0000000000000000` を自身の Publisher ID に置き換えてください。
+
+参考: [AdSense コード設置ガイド](https://support.google.com/adsense/answer/9274516) / [ads.txt ガイド](https://support.google.com/adsense/answer/12171612)
+
 ## プライバシー
 
 - アップロードされた画像、推論結果、編集結果はいずれもブラウザ内で処理され、サーバー側に送信・保存されません。

@@ -1,5 +1,60 @@
 import { removeBackground } from "@imgly/background-removal";
 
+declare global {
+  interface Window {
+    adsbygoogle?: unknown[];
+  }
+}
+
+const ADSENSE_CLIENT = (import.meta.env.VITE_ADSENSE_CLIENT || "").trim();
+const ADSENSE_SLOTS = {
+  top: (import.meta.env.VITE_ADSENSE_SLOT_TOP || "").trim(),
+  editor: (import.meta.env.VITE_ADSENSE_SLOT_EDITOR || "").trim(),
+  bottom: (import.meta.env.VITE_ADSENSE_SLOT_BOTTOM || "").trim(),
+} as const;
+const ADSENSE_AUTO = (import.meta.env.VITE_ADSENSE_AUTO || "").trim() === "true";
+
+function isValidAdsenseClient(client: string) {
+  return /^ca-pub-\d{16}$/.test(client);
+}
+
+function isValidAdsenseSlot(slot: string) {
+  return /^\d{10,}$/.test(slot);
+}
+
+function loadAdsense(client: string) {
+  if (document.querySelector<HTMLScriptElement>("script[data-managed-adsense]")) return;
+  const script = document.createElement("script");
+  script.async = true;
+  script.crossOrigin = "anonymous";
+  script.dataset.managedAdsense = "true";
+  script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(client)}`;
+  document.head.appendChild(script);
+}
+
+function setupAdsense() {
+  if (!isValidAdsenseClient(ADSENSE_CLIENT)) return;
+  const slots = document.querySelectorAll<HTMLElement>("[data-ad-slot-key]");
+  loadAdsense(ADSENSE_CLIENT);
+  slots.forEach((container) => {
+    const key = container.dataset.adSlotKey as keyof typeof ADSENSE_SLOTS | undefined;
+    const slot = key ? ADSENSE_SLOTS[key] : "";
+    if (!isValidAdsenseSlot(slot)) return;
+    container.hidden = false;
+    container.innerHTML = '<span class="ad-label">広告</span>';
+    const ad = document.createElement("ins");
+    ad.className = "adsbygoogle";
+    ad.style.display = "block";
+    ad.dataset.adClient = ADSENSE_CLIENT;
+    ad.dataset.adSlot = slot;
+    ad.dataset.adFormat = "auto";
+    ad.dataset.fullWidthResponsive = "true";
+    container.appendChild(ad);
+    window.adsbygoogle = window.adsbygoogle || [];
+    window.adsbygoogle.push({});
+  });
+}
+
 type Aspect = { id: string; w: number; h: number; name: string };
 const ASPECTS: Aspect[] = [
   { id: "30x40", w: 30, h: 40, name: "履歴書（就活、転職、バイト）" },
@@ -725,4 +780,5 @@ canvas.addEventListener("wheel", (e) => {
 }, { passive: false });
 
 updateSaveActions();
+if (ADSENSE_AUTO || Object.values(ADSENSE_SLOTS).some(isValidAdsenseSlot)) setupAdsense();
 window.addEventListener("resize", () => { setCanvasSize(); updateSaveActions(); render(); });
