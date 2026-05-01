@@ -174,6 +174,11 @@ const state = {
   background: BACKGROUNDS[0],
   bgMode: "gradient" as BgMode,
   exportMode: "sheet" as ExportMode,
+  sheetText: {
+    sideTitle: "証明写真",
+    sideAccent: "きれい",
+    cut: "点線に沿ってカットしてください",
+  },
   output: OUTPUT_PRESETS[0],
   customDpi: 300,
   customPx: 800,
@@ -413,6 +418,9 @@ const customDpiBox = $("custom-dpi-box");
 const customPxBox = $("custom-px-box");
 const customDpiInput = $<HTMLInputElement>("custom-dpi");
 const customPxInput = $<HTMLInputElement>("custom-px");
+const sheetSideTitleInput = $<HTMLInputElement>("sheet-side-title");
+const sheetSideAccentInput = $<HTMLInputElement>("sheet-side-accent");
+const sheetCutTextInput = $<HTMLInputElement>("sheet-cut-text");
 const exportModeRadios = document.querySelectorAll<HTMLInputElement>('input[name="export-mode"]');
 function updateDpiNote() {
   const a = state.aspect;
@@ -458,6 +466,18 @@ customPxInput.addEventListener("input", () => {
     state.customPx = v;
     updateDpiNote();
   }
+});
+function sheetTextValue(input: HTMLInputElement, fallback: string) {
+  return input.value.trim() || fallback;
+}
+function updateSheetText() {
+  state.sheetText.sideTitle = sheetTextValue(sheetSideTitleInput, "証明写真");
+  state.sheetText.sideAccent = sheetTextValue(sheetSideAccentInput, "きれい");
+  state.sheetText.cut = sheetTextValue(sheetCutTextInput, "点線に沿ってカットしてください");
+  render();
+}
+[sheetSideTitleInput, sheetSideAccentInput, sheetCutTextInput].forEach((input) => {
+  input.addEventListener("input", updateSheetText);
 });
 updateDpiNote();
 
@@ -546,8 +566,10 @@ function drawSideTicket(ctx: CanvasRenderingContext2D, x: number, y: number, w: 
   ctx.font = `900 ${Math.max(13, Math.round(w * 0.13))}px sans-serif`;
   ctx.fillText("PRINT SHEET", x + w / 2, y + mmToPx(5, dpi));
 
-  drawVertical("証明写真", x + w * 0.45, y + h * 0.2, Math.max(25, Math.round(w * 0.27)), 900, "#063a85", 1.06);
-  drawVertical("きれい", x + w * 0.7, y + h * 0.23, Math.max(14, Math.round(w * 0.14)), 800, "#1d5bd8", 1.18);
+  const titleSize = Math.max(18, Math.min(Math.round(w * 0.27), Math.floor((h * 0.52) / Math.max(1, state.sheetText.sideTitle.length))));
+  const accentSize = Math.max(10, Math.min(Math.round(w * 0.14), Math.floor((h * 0.28) / Math.max(1, state.sheetText.sideAccent.length))));
+  drawVertical(state.sheetText.sideTitle, x + w * 0.45, y + h * 0.2, titleSize, 900, "#063a85", 1.06);
+  drawVertical(state.sheetText.sideAccent, x + w * 0.7, y + h * 0.23, accentSize, 800, "#1d5bd8", 1.18);
 
   ctx.strokeStyle = "rgba(6, 58, 133, .35)";
   ctx.setLineDash([Math.max(3, mmToPx(0.8, dpi)), Math.max(3, mmToPx(0.8, dpi))]);
@@ -619,7 +641,7 @@ function createSheetCanvas(dpi = DEFAULT_SHEET.dpi) {
   cx.fillStyle = "#e42b34";
   cx.font = `900 ${Math.max(10, mmToPx(2.2, layout.dpi))}px sans-serif`;
   cx.textAlign = "center";
-  cx.fillText("点線に沿ってカットしてください", startX + usedW / 2, c.height - Math.max(8, margin / 2));
+  cx.fillText(state.sheetText.cut, startX + usedW / 2, c.height - Math.max(8, margin / 2), Math.max(photoW * 2, usedW));
   cx.fillStyle = "#063a85";
   cx.font = `700 ${Math.max(8, mmToPx(1.8, layout.dpi))}px sans-serif`;
   cx.fillText(`${state.aspect.name}（${state.aspect.w}×${state.aspect.h}mm）`, startX + usedW / 2, c.height - Math.max(24, margin));

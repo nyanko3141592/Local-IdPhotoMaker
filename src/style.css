@@ -541,7 +541,8 @@ h1 span {
 }
 
 .select,
-.custom-dpi input {
+.custom-dpi input,
+.sheet-copy-grid input {
   width: 100%;
   min-height: 40px;
   padding: 8px 10px;
@@ -562,7 +563,8 @@ h1 span {
 }
 
 .select:focus,
-.custom-dpi input:focus {
+.custom-dpi input:focus,
+.sheet-copy-grid input:focus {
   outline: 3px solid rgba(255, 230, 90, .8);
   border-color: var(--blue-dark);
 }
@@ -587,6 +589,17 @@ h1 span {
   color: var(--muted);
   font-size: .82rem;
   font-weight: 800;
+}
+
+.sheet-copy-grid {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, .7fr);
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.sheet-copy-grid input:nth-child(3) {
+  grid-column: 1 / -1;
 }
 
 .segmented {
