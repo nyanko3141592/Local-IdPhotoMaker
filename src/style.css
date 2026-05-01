@@ -638,6 +638,7 @@ h1 span {
 .segmented label:has(input:checked) { background: var(--yellow); color: var(--red); }
 .export-mode { margin-bottom: 8px; }
 .export-mode + .save-note { margin: 0 0 12px; }
+.sheet-format { margin: 8px 0 12px; }
 .select:disabled {
   color: #7890a8;
   background-color: #eef7fc;

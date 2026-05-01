@@ -118,6 +118,7 @@ const OUTPUT_PRESETS: OutputPreset[] = [
   { id: "custom-px", label: "カスタム（長辺 px を指定）", customPx: true },
 ];
 type ExportMode = "sheet" | "single";
+type SheetFormat = "grid" | "mixed";
 type SheetLayout = {
   dpi: number;
   wMm: number;
@@ -174,6 +175,7 @@ const state = {
   background: BACKGROUNDS[0],
   bgMode: "gradient" as BgMode,
   exportMode: "sheet" as ExportMode,
+  sheetFormat: "grid" as SheetFormat,
   sheetText: {
     sideTitle: "証明写真",
     sideAccent: "きれい",
@@ -422,20 +424,28 @@ const sheetSideTitleInput = $<HTMLInputElement>("sheet-side-title");
 const sheetSideAccentInput = $<HTMLInputElement>("sheet-side-accent");
 const sheetCutTextInput = $<HTMLInputElement>("sheet-cut-text");
 const exportModeRadios = document.querySelectorAll<HTMLInputElement>('input[name="export-mode"]');
+const sheetFormatRadios = document.querySelectorAll<HTMLInputElement>('input[name="sheet-format"]');
+const sheetFormatLabel = $("sheet-format-label");
+const sheetFormatControl = $("sheet-format-control");
 function updateDpiNote() {
   const a = state.aspect;
   const { w, h } = computeOutput(state.output, a.w, a.h, state.customDpi, state.customPx);
   const sheetW = Math.round((DEFAULT_SHEET.wMm * DEFAULT_SHEET.dpi) / 25.4);
   const sheetH = Math.round((DEFAULT_SHEET.hMm * DEFAULT_SHEET.dpi) / 25.4);
   if (state.exportMode === "sheet") {
-    dpiNote.textContent = `出力: ${sheetW} × ${sheetH} px / ${countSheetSlots(state.aspect.w, state.aspect.h, DEFAULT_SHEET)}枚`;
-    exportNote.textContent = "写真プリント風シートに、同じ証明写真を複数枚並べて保存します。";
+    const formatText = state.sheetFormat === "mixed" ? "大判2枚＋小判4枚" : `${countSheetSlots(state.aspect.w, state.aspect.h, DEFAULT_SHEET)}枚`;
+    dpiNote.textContent = `出力: ${sheetW} × ${sheetH} px / ${formatText}`;
+    exportNote.textContent = state.sheetFormat === "mixed"
+      ? "大きい証明写真2枚と小さい証明写真4枚を、写真プリント風シートに並べて保存します。"
+      : "写真プリント風シートに、同じ証明写真を複数枚並べて保存します。";
   } else {
     dpiNote.textContent = `出力: ${w} × ${h} px`;
     exportNote.textContent = "用途サイズどおりの1枚画像として保存します。";
   }
   customDpiBox.hidden = state.exportMode !== "single" || !state.output.customDpi;
   customPxBox.hidden = state.exportMode !== "single" || !state.output.customPx;
+  sheetFormatLabel.hidden = state.exportMode !== "sheet";
+  sheetFormatControl.hidden = state.exportMode !== "sheet";
   outputSelect.disabled = state.exportMode === "sheet";
 }
 exportModeRadios.forEach((radio) => {
@@ -444,6 +454,14 @@ exportModeRadios.forEach((radio) => {
     state.exportMode = radio.value as ExportMode;
     updateDpiNote();
     updateSaveActions();
+  });
+});
+sheetFormatRadios.forEach((radio) => {
+  radio.addEventListener("change", () => {
+    if (!radio.checked) return;
+    state.sheetFormat = radio.value as SheetFormat;
+    updateDpiNote();
+    render();
   });
 });
 outputSelect.addEventListener("change", () => {
@@ -627,6 +645,27 @@ function drawCutMarks(ctx: CanvasRenderingContext2D, x: number, y: number, w: nu
   ctx.restore();
 }
 
+function drawRotatedLine(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+  weight: number | string,
+  maxWidth: number,
+) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = color;
+  ctx.font = `${weight} ${size}px sans-serif`;
+  ctx.fillText(text, 0, 0, maxWidth);
+  ctx.restore();
+}
+
 function createSingleCanvas() {
   const { w: outW, h: outH, suffix } = computeOutput(state.output, state.aspect.w, state.aspect.h, state.customDpi, state.customPx);
   const c = document.createElement("canvas");
@@ -645,7 +684,15 @@ function createPhotoCanvas(w: number, h: number) {
   return c;
 }
 
-function createSheetCanvas(dpi = DEFAULT_SHEET.dpi) {
+function drawSheetPhoto(ctx: CanvasRenderingContext2D, photoCanvas: HTMLCanvasElement, x: number, y: number, w: number, h: number, dpi: number) {
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
+  ctx.drawImage(photoCanvas, x, y);
+  drawCropGuide(ctx, x, y, w, h);
+  drawCutMarks(ctx, x, y, w, h, dpi);
+}
+
+function createGridSheetCanvas(dpi = DEFAULT_SHEET.dpi) {
   const layout = { ...DEFAULT_SHEET, dpi };
   const c = document.createElement("canvas");
   c.width = mmToPx(layout.wMm, layout.dpi);
@@ -671,11 +718,7 @@ function createSheetCanvas(dpi = DEFAULT_SHEET.dpi) {
     for (let col = 0; col < cols; col++) {
       const x = startX + col * (photoW + gap);
       const y = startY + row * (photoH + gap);
-      cx.fillStyle = "#fff";
-      cx.fillRect(x - 2, y - 2, photoW + 4, photoH + 4);
-      cx.drawImage(photoCanvas, x, y);
-      drawCropGuide(cx, x, y, photoW, photoH);
-      drawCutMarks(cx, x, y, photoW, photoH, layout.dpi);
+      drawSheetPhoto(cx, photoCanvas, x, y, photoW, photoH, layout.dpi);
     }
   }
   const ticketX = c.width - margin - labelW;
@@ -696,7 +739,57 @@ function createSheetCanvas(dpi = DEFAULT_SHEET.dpi) {
   cx.font = `700 ${Math.max(6, mmToPx(1.15, layout.dpi))}px sans-serif`;
   cx.fillText(`1マスは約5mmです。${state.aspect.w}×${state.aspect.h}mm の目安としてご利用ください。`, startX + usedW * 0.62, subLineY, usedW * 0.56);
   cx.restore();
-  return { canvas: c, suffix: `${layout.wMm}x${layout.hMm}mm-sheet-${DEFAULT_SHEET.dpi}dpi` };
+  return { canvas: c, suffix: `${layout.wMm}x${layout.hMm}mm-grid-sheet-${DEFAULT_SHEET.dpi}dpi` };
+}
+
+function createMixedSheetCanvas(dpi = DEFAULT_SHEET.dpi) {
+  const layout = { ...DEFAULT_SHEET, dpi };
+  const c = document.createElement("canvas");
+  c.width = mmToPx(layout.wMm, layout.dpi);
+  c.height = mmToPx(layout.hMm, layout.dpi);
+  const cx = c.getContext("2d")!;
+  drawSheetBackground(cx, c.width, c.height, layout.dpi);
+
+  const margin = mmToPx(layout.marginMm, layout.dpi);
+  const labelW = mmToPx(layout.labelMm, layout.dpi);
+  const largeW = mmToPx(50, layout.dpi);
+  const largeH = mmToPx(55, layout.dpi);
+  const smallW = mmToPx(25, layout.dpi);
+  const smallH = mmToPx(30, layout.dpi);
+  const largeGap = mmToPx(6, layout.dpi);
+  const smallGap = mmToPx(2, layout.dpi);
+  const startX = margin;
+  const topY = margin;
+  const smallY = mmToPx(67, layout.dpi);
+  const largeUsedW = largeW * 2 + largeGap;
+  const smallUsedW = smallW * 4 + smallGap * 3;
+
+  const largePhoto = createPhotoCanvas(largeW, largeH);
+  const smallPhoto = createPhotoCanvas(smallW, smallH);
+  for (let col = 0; col < 2; col++) {
+    drawSheetPhoto(cx, largePhoto, startX + col * (largeW + largeGap), topY, largeW, largeH, layout.dpi);
+  }
+  for (let col = 0; col < 4; col++) {
+    drawSheetPhoto(cx, smallPhoto, startX + col * (smallW + smallGap), smallY, smallW, smallH, layout.dpi);
+  }
+
+  const textGapX = startX + largeUsedW + mmToPx(3.5, layout.dpi);
+  const topTextCenterY = topY + largeH / 2;
+  drawRotatedLine(cx, "中型証明（縦5.5cm×横5.0cm）", textGapX, topTextCenterY, Math.max(7, mmToPx(1.45, layout.dpi)), "#10182f", 900, largeH * 0.9);
+  drawRotatedLine(cx, state.sheetText.cut, textGapX + mmToPx(4, layout.dpi), topTextCenterY, Math.max(7, mmToPx(1.35, layout.dpi)), "#e42b34", 900, largeH * 0.9);
+  drawRotatedLine(cx, "1マスは約5mmです。用途に合わせてカットしてください。", textGapX + mmToPx(7.2, layout.dpi), topTextCenterY, Math.max(6, mmToPx(1.05, layout.dpi)), "#1b61d6", 700, largeH * 0.9);
+
+  const bottomTextX = startX + smallUsedW + mmToPx(3.2, layout.dpi);
+  const bottomTextY = smallY + smallH / 2;
+  drawRotatedLine(cx, "各種証明用（縦3.0cm×横2.5cm）", bottomTextX, bottomTextY, Math.max(7, mmToPx(1.35, layout.dpi)), "#10182f", 900, smallH * 0.96);
+
+  const ticketX = c.width - margin - labelW;
+  drawSideTicket(cx, ticketX, topY, labelW, smallY + smallH - topY, layout.dpi);
+  return { canvas: c, suffix: `${layout.wMm}x${layout.hMm}mm-mixed-sheet-${DEFAULT_SHEET.dpi}dpi` };
+}
+
+function createSheetCanvas(dpi = DEFAULT_SHEET.dpi) {
+  return state.sheetFormat === "mixed" ? createMixedSheetCanvas(dpi) : createGridSheetCanvas(dpi);
 }
 
 function renderSheetPreview() {

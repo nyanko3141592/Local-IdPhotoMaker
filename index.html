@@ -155,6 +155,11 @@
                 <label><input type="radio" name="export-mode" value="single" /><span>1枚画像</span></label>
               </div>
               <p id="export-note" class="save-note">写真プリント風シートに、同じ証明写真を複数枚並べて保存します。</p>
+              <label class="field-label" id="sheet-format-label">シート形式</label>
+              <div class="segmented sheet-format" id="sheet-format-control">
+                <label><input type="radio" name="sheet-format" value="grid" checked /><span>標準8枚</span></label>
+                <label><input type="radio" name="sheet-format" value="mixed" /><span>大2＋小4</span></label>
+              </div>
               <label class="field-label" for="sheet-cut-text">シート文言</label>
               <div class="sheet-copy-grid">
                 <label><span>右側・縦大文字</span><input type="text" id="sheet-side-title" maxlength="6" value="証明写真" /></label>
