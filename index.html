@@ -121,31 +121,6 @@
             </div>
           </div>
 
-          <div class="panel" style="margin-bottom: 16px;">
-            <div class="panel-header">背景</div>
-            <div class="panel-body">
-              <div class="segmented">
-                <label><input type="radio" name="bg-mode" value="gradient" checked /><span>グラデーション</span></label>
-                <label><input type="radio" name="bg-mode" value="solid" /><span>単色</span></label>
-              </div>
-              <div id="bg-list" class="swatches" style="margin-top: 10px;"></div>
-            </div>
-          </div>
-
-          <div class="panel" style="margin-bottom: 16px;">
-            <div class="panel-header">調整</div>
-            <div class="panel-body">
-              <ul class="hints">
-                <li>プレビューを<strong>ドラッグ</strong>して位置を調整</li>
-                <li><strong>マウスホイール</strong> または <strong>ピンチ</strong>で拡大・縮小</li>
-              </ul>
-              <div class="btn-row">
-                <button id="flip" class="btn">左右反転</button>
-                <button id="reset" class="btn">位置をリセット</button>
-              </div>
-            </div>
-          </div>
-
           <div class="panel">
             <div class="panel-header">書き出し</div>
             <div class="panel-body">
@@ -160,22 +135,6 @@
                 <label><input type="radio" name="sheet-format" value="grid" checked /><span>標準8枚</span></label>
                 <label><input type="radio" name="sheet-format" value="mixed" /><span>大2＋小4</span></label>
               </div>
-              <label class="field-label" for="sheet-cut-text">シート文言</label>
-              <div class="sheet-copy-grid">
-                <label><span>右側・縦大文字</span><input type="text" id="sheet-side-title" maxlength="6" value="証明写真" /></label>
-                <label><span>右側・縦小文字</span><input type="text" id="sheet-side-accent" maxlength="4" value="きれい" /></label>
-                <label><span>下部・横文字</span><input type="text" id="sheet-cut-text" maxlength="24" value="点線に沿ってカットしてください" /></label>
-              </div>
-              <label class="field-label" for="dpi">解像度</label>
-              <select id="dpi" class="select"></select>
-              <div id="custom-dpi-box" class="custom-dpi" hidden>
-                <input type="number" id="custom-dpi" min="72" max="1200" step="1" value="300" />
-                <span>dpi</span>
-              </div>
-              <div id="custom-px-box" class="custom-dpi" hidden>
-                <input type="number" id="custom-px" min="100" max="4000" step="10" value="800" />
-                <span>px（長辺）</span>
-              </div>
               <div class="dims-note" id="dpi-note"></div>
               <button id="save" class="btn primary full-btn" style="margin-top: 12px;">PNG を保存</button>
               <button id="share" class="btn subtle full-btn" hidden>共有</button>
@@ -183,6 +142,54 @@
               <button id="reupload" class="btn subtle full-btn" style="margin-top: 8px;">別の写真で作り直す</button>
             </div>
           </div>
+
+          <details class="panel advanced-panel">
+            <summary class="panel-header">詳細設定</summary>
+            <div class="panel-body">
+              <details class="advanced-block">
+                <summary>背景を変える</summary>
+                <div class="segmented">
+                  <label><input type="radio" name="bg-mode" value="gradient" checked /><span>グラデーション</span></label>
+                  <label><input type="radio" name="bg-mode" value="solid" /><span>単色</span></label>
+                </div>
+                <div id="bg-list" class="swatches" style="margin-top: 10px;"></div>
+              </details>
+
+              <details class="advanced-block">
+                <summary>位置を細かく調整</summary>
+                <ul class="hints">
+                  <li>プレビューを<strong>ドラッグ</strong>して位置を調整</li>
+                  <li><strong>マウスホイール</strong> または <strong>ピンチ</strong>で拡大・縮小</li>
+                </ul>
+                <div class="btn-row">
+                  <button id="flip" class="btn">左右反転</button>
+                  <button id="reset" class="btn">位置をリセット</button>
+                </div>
+              </details>
+
+              <details class="advanced-block">
+                <summary>シート文言を変える</summary>
+                <div class="sheet-copy-grid">
+                  <label><span>右側・縦大文字</span><input type="text" id="sheet-side-title" maxlength="6" value="証明写真" /></label>
+                  <label><span>右側・縦小文字</span><input type="text" id="sheet-side-accent" maxlength="4" value="きれい" /></label>
+                  <label><span>下部・横文字</span><input type="text" id="sheet-cut-text" maxlength="24" value="点線に沿ってカットしてください" /></label>
+                </div>
+              </details>
+
+              <details class="advanced-block">
+                <summary>解像度を指定する</summary>
+                <select id="dpi" class="select"></select>
+                <div id="custom-dpi-box" class="custom-dpi" hidden>
+                  <input type="number" id="custom-dpi" min="72" max="1200" step="1" value="300" />
+                  <span>dpi</span>
+                </div>
+                <div id="custom-px-box" class="custom-dpi" hidden>
+                  <input type="number" id="custom-px" min="100" max="4000" step="10" value="800" />
+                  <span>px（長辺）</span>
+                </div>
+              </details>
+            </div>
+          </details>
 
           <aside class="ad-shell ad-shell-editor" data-ad-slot-key="editor" aria-label="広告" hidden></aside>
         </div>

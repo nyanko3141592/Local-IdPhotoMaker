@@ -429,6 +429,30 @@ h1 span {
   box-shadow: 0 9px 20px rgba(0, 55, 125, .2);
 }
 
+.advanced-panel {
+  margin-top: 16px;
+}
+
+.advanced-panel > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.advanced-panel > summary::-webkit-details-marker,
+.advanced-block > summary::-webkit-details-marker {
+  display: none;
+}
+
+.advanced-panel > summary::after {
+  content: "+";
+  float: right;
+  font-size: 1rem;
+}
+
+.advanced-panel[open] > summary::after {
+  content: "-";
+}
+
 .panel-header {
   padding: 9px 14px;
   background: var(--blue-dark);
@@ -439,6 +463,42 @@ h1 span {
 }
 
 .panel-body { padding: 15px; }
+
+.advanced-block {
+  border-top: 2px solid var(--line);
+  padding: 12px 0;
+}
+
+.advanced-block:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.advanced-block:last-child {
+  padding-bottom: 0;
+}
+
+.advanced-block > summary {
+  list-style: none;
+  color: var(--blue-dark);
+  cursor: pointer;
+  font-size: .82rem;
+  font-weight: 900;
+}
+
+.advanced-block > summary::after {
+  content: "+";
+  float: right;
+  color: var(--red);
+}
+
+.advanced-block[open] > summary {
+  margin-bottom: 10px;
+}
+
+.advanced-block[open] > summary::after {
+  content: "-";
+}
 
 .canvas-wrap {
   position: relative;
