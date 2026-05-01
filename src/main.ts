@@ -131,10 +131,10 @@ const DEFAULT_SHEET: SheetLayout = {
   dpi: 300,
   wMm: 152,
   hMm: 102,
-  marginMm: 4,
+  marginMm: 3.5,
   gapMm: 1,
-  labelMm: 18,
-  footerMm: 9,
+  labelMm: 15,
+  footerMm: 8,
 };
 function computeOutput(p: OutputPreset, wMm: number, hMm: number, customDpi: number, customPx: number): { w: number; h: number; suffix: string } {
   if (p.customDpi) {
@@ -505,12 +505,12 @@ function drawCropGuide(ctx: CanvasRenderingContext2D, x: number, y: number, w: n
 }
 
 function drawSheetBackground(ctx: CanvasRenderingContext2D, w: number, h: number, dpi: number) {
-  ctx.fillStyle = "#f9fbff";
+  ctx.fillStyle = "#fbfdff";
   ctx.fillRect(0, 0, w, h);
-  const small = Math.max(2, mmToPx(1, dpi));
+  const small = Math.max(2, mmToPx(0.8, dpi));
   const large = small * 5;
   ctx.save();
-  ctx.strokeStyle = "rgba(68, 94, 255, .18)";
+  ctx.strokeStyle = "rgba(63, 99, 255, .2)";
   ctx.lineWidth = 1;
   for (let x = 0; x <= w; x += small) {
     ctx.beginPath();
@@ -524,7 +524,7 @@ function drawSheetBackground(ctx: CanvasRenderingContext2D, w: number, h: number
     ctx.lineTo(w, y + 0.5);
     ctx.stroke();
   }
-  ctx.strokeStyle = "rgba(68, 94, 255, .34)";
+  ctx.strokeStyle = "rgba(63, 99, 255, .42)";
   for (let x = 0; x <= w; x += large) {
     ctx.beginPath();
     ctx.moveTo(x + 0.5, 0);
@@ -537,9 +537,29 @@ function drawSheetBackground(ctx: CanvasRenderingContext2D, w: number, h: number
     ctx.lineTo(w, y + 0.5);
     ctx.stroke();
   }
-  ctx.strokeStyle = "#3f63ff";
+  ctx.strokeStyle = "#3159ff";
   ctx.lineWidth = Math.max(2, mmToPx(0.25, dpi));
   ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+
+  const tick = mmToPx(1.2, dpi);
+  ctx.strokeStyle = "#3159ff";
+  ctx.lineWidth = Math.max(1, mmToPx(0.18, dpi));
+  for (let x = large; x < w; x += large) {
+    ctx.beginPath();
+    ctx.moveTo(x + 0.5, 0);
+    ctx.lineTo(x + 0.5, tick);
+    ctx.moveTo(x + 0.5, h - tick);
+    ctx.lineTo(x + 0.5, h);
+    ctx.stroke();
+  }
+  for (let y = large; y < h; y += large) {
+    ctx.beginPath();
+    ctx.moveTo(0, y + 0.5);
+    ctx.lineTo(tick, y + 0.5);
+    ctx.moveTo(w - tick, y + 0.5);
+    ctx.lineTo(w, y + 0.5);
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -563,13 +583,13 @@ function drawSideTicket(ctx: CanvasRenderingContext2D, x: number, y: number, w: 
 
   ctx.textAlign = "center";
   ctx.fillStyle = "#063a85";
-  ctx.font = `900 ${Math.max(13, Math.round(w * 0.13))}px sans-serif`;
+  ctx.font = `900 ${Math.max(10, Math.round(w * 0.13))}px sans-serif`;
   ctx.fillText("PRINT SHEET", x + w / 2, y + mmToPx(5, dpi));
 
-  const titleSize = Math.max(18, Math.min(Math.round(w * 0.27), Math.floor((h * 0.52) / Math.max(1, state.sheetText.sideTitle.length))));
+  const titleSize = Math.max(16, Math.min(Math.round(w * 0.31), Math.floor((h * 0.5) / Math.max(1, state.sheetText.sideTitle.length))));
   const accentSize = Math.max(10, Math.min(Math.round(w * 0.14), Math.floor((h * 0.28) / Math.max(1, state.sheetText.sideAccent.length))));
-  drawVertical(state.sheetText.sideTitle, x + w * 0.45, y + h * 0.2, titleSize, 900, "#063a85", 1.06);
-  drawVertical(state.sheetText.sideAccent, x + w * 0.7, y + h * 0.23, accentSize, 800, "#1d5bd8", 1.18);
+  drawVertical(state.sheetText.sideTitle, x + w * 0.46, y + h * 0.2, titleSize, 900, "#063a85", 1.04);
+  drawVertical(state.sheetText.sideAccent, x + w * 0.72, y + h * 0.23, accentSize, 800, "#1d5bd8", 1.16);
 
   ctx.strokeStyle = "rgba(6, 58, 133, .35)";
   ctx.setLineDash([Math.max(3, mmToPx(0.8, dpi)), Math.max(3, mmToPx(0.8, dpi))]);
@@ -582,6 +602,28 @@ function drawSideTicket(ctx: CanvasRenderingContext2D, x: number, y: number, w: 
   ctx.fillStyle = "#0a4bb4";
   ctx.font = `700 ${Math.max(9, Math.round(w * 0.08))}px sans-serif`;
   ctx.fillText(`${new Date().getFullYear()}`, x + w / 2, y + h - mmToPx(8, dpi));
+
+  ctx.translate(x + w * 0.94, y + h * 0.52);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = "#3159ff";
+  ctx.font = `900 ${Math.max(8, Math.round(w * 0.07))}px sans-serif`;
+  ctx.fillText("* Kirari *", 0, 0);
+  ctx.restore();
+}
+
+function drawCutMarks(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, dpi: number) {
+  const len = mmToPx(1.6, dpi);
+  ctx.save();
+  ctx.strokeStyle = "#1c49cc";
+  ctx.lineWidth = Math.max(1, mmToPx(0.15, dpi));
+  [[x, y], [x + w, y], [x, y + h], [x + w, y + h]].forEach(([cx, cy]) => {
+    ctx.beginPath();
+    ctx.moveTo(cx - len, cy);
+    ctx.lineTo(cx + len, cy);
+    ctx.moveTo(cx, cy - len);
+    ctx.lineTo(cx, cy + len);
+    ctx.stroke();
+  });
   ctx.restore();
 }
 
@@ -633,18 +675,26 @@ function createSheetCanvas(dpi = DEFAULT_SHEET.dpi) {
       cx.fillRect(x - 2, y - 2, photoW + 4, photoH + 4);
       cx.drawImage(photoCanvas, x, y);
       drawCropGuide(cx, x, y, photoW, photoH);
+      drawCutMarks(cx, x, y, photoW, photoH, layout.dpi);
     }
   }
   const ticketX = c.width - margin - labelW;
   drawSideTicket(cx, ticketX, startY, labelW, usedH, layout.dpi);
   cx.save();
+  const footerTop = c.height - bottomBand + mmToPx(1.2, layout.dpi);
+  const mainLineY = footerTop + mmToPx(2.2, layout.dpi);
+  const subLineY = mainLineY + mmToPx(2.1, layout.dpi);
+  cx.fillStyle = "#10182f";
+  cx.font = `800 ${Math.max(7, mmToPx(1.55, layout.dpi))}px sans-serif`;
+  cx.textAlign = "left";
+  cx.fillText(`${state.aspect.name}（縦${(state.aspect.h / 10).toFixed(1)}cm×横${(state.aspect.w / 10).toFixed(1)}cm）`, startX, mainLineY, usedW * 0.46);
   cx.fillStyle = "#e42b34";
-  cx.font = `900 ${Math.max(10, mmToPx(2.2, layout.dpi))}px sans-serif`;
+  cx.font = `900 ${Math.max(9, mmToPx(1.85, layout.dpi))}px sans-serif`;
   cx.textAlign = "center";
-  cx.fillText(state.sheetText.cut, startX + usedW / 2, c.height - Math.max(8, margin / 2), Math.max(photoW * 2, usedW));
-  cx.fillStyle = "#063a85";
-  cx.font = `700 ${Math.max(8, mmToPx(1.8, layout.dpi))}px sans-serif`;
-  cx.fillText(`${state.aspect.name}（${state.aspect.w}×${state.aspect.h}mm）`, startX + usedW / 2, c.height - Math.max(24, margin));
+  cx.fillText(state.sheetText.cut, startX + usedW * 0.68, mainLineY, usedW * 0.52);
+  cx.fillStyle = "#1b61d6";
+  cx.font = `700 ${Math.max(6, mmToPx(1.15, layout.dpi))}px sans-serif`;
+  cx.fillText(`1マスは約5mmです。${state.aspect.w}×${state.aspect.h}mm の目安としてご利用ください。`, startX + usedW * 0.62, subLineY, usedW * 0.56);
   cx.restore();
   return { canvas: c, suffix: `${layout.wMm}x${layout.hMm}mm-sheet-${DEFAULT_SHEET.dpi}dpi` };
 }
